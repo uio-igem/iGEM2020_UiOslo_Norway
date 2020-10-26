@@ -15,13 +15,13 @@ function environmentParameters()
     avoidStr="#"
     delimiter='='
     Env_Para=(
-    #dimensionless length of each side of cubic/square tank
+    # dimensionless length of each side of cubic/square tank
     L=parse(Float32,getParaFromFile(file,"L",avoidStr,delimiter)),
-    #Multiplies initial normal distribution of fish positions to spread them out
+    # Multiplies initial normal distribution of fish positions to spread them out
     R_Fish=parse(Float32,getParaFromFile(file,"R_Fish",avoidStr,delimiter)),
     # amplitude of velocity noise
     ampVNoise = parse(Float64,getParaFromFile(file,"ampVNoise",avoidStr,delimiter)),
-    #amplitude of position noise
+    # amplitude of position noise
     ampPosNoise=parse(Float64,getParaFromFile(file,"ampPosNoise",avoidStr,delimiter)),
     )
     return Env_Para
@@ -45,7 +45,7 @@ function simulationParameters()
     # number of simulation runs, can be used to average measurements
     N_runs=parse(Int,getParaFromFile(file,"N_runs",avoidStr,delimiter)),
     # number of times code is ran, this can be used to change variables for
-    # each instance to generate statistic.
+    #each instance to generate statistic.
     N_instances=parse(Int,getParaFromFile(file,"N_instances",avoidStr,delimiter)),
     )
     return Sim_Para
@@ -64,13 +64,13 @@ function fishParameters()
     R_orientation = parse(Float32,getParaFromFile(file,"R_orientation",avoidStr,delimiter)),
     # radius of repulsion
     R_repulsion = parse(Float32,getParaFromFile(file,"R_repulsion",avoidStr,delimiter)),
-    # scaling for attraction
+    # scalling for attraction
     attractWeight=parse(Float32,getParaFromFile(file,"attractWeight",avoidStr,delimiter)),
-    # scaling for repulsion
+    # scalling for repulsion
     repulseWeight=parse(Float32,getParaFromFile(file,"repulseWeight",avoidStr,delimiter)),
     # force for current direction
     selfWeight=parse(Float32,getParaFromFile(file,"selfWeight",avoidStr,delimiter)),
-    # scaling for orientation
+    # scalling for orientation
     orientationWeight=parse(Float32,getParaFromFile(file,"orientationWeight",avoidStr,delimiter)),
     # fish lengths per second
     mean_v=parse(Float32,getParaFromFile(file,"mean_v",avoidStr,delimiter)),
@@ -82,7 +82,7 @@ function fishParameters()
     return Fish_Para
 end
 
-# Returns a named tuple of sick paramters
+#Returns a named tuple of sick paramters
 function sickParameters()
     file = open("parametersForModel.txt")
     avoidStr="#"
@@ -100,7 +100,7 @@ function sickParameters()
     return Sick_Para
 end
 
-# Returns named tuple of visualisation paramters
+#Returns named tuple of visualisation paramters
 function visualParamters()
     file = open("parametersForModel.txt")
     avoidStr="#"
@@ -117,22 +117,29 @@ function visualParamters()
     )
     return Vizual_Para
 end
-# Returns name tuple of data analysis parameters
+#Returns name tuple of data analysis parameters
 function dataAnalysisParameters()
     file = open("parametersForModel.txt")
     avoidStr="#"
     delimiter='='
 
     DataAnalaysis_Para=(
-    # Number of measurements
+    # number of measurements
     N_measurements= parse(Int,getParaFromFile(file,"N_measurements",avoidStr,delimiter)),
 
-    #if this is set to true then for each instance a measure will be appended
-    #to CSV dataforAanalysis where the first entry is class
+    # if this is set to true then for each instance a measure will be appended
+    # to CSV dataforAanalysis where the first entry is class
     appendToDataForAnalysis=parse(Bool,getParaFromFile(file,"appendToDataForAnalysis",avoidStr,delimiter)),
-    #set your target value or class here, it will be assigned to all
-    #saved data for analysis
+    # set your target value or class here, it will be assigned to all
+    # saved data for analysis
     class=parse(Int,getParaFromFile(file,"class",avoidStr,delimiter)),
+
+    # Start measuring at this percentage of N_steps
+    measure_Start=parse(Float32,getParaFromFile(file,"measure_Start",avoidStr,delimiter)),
+
+    # Stop measuring at this percentage of N_steps
+    measure_Stop=parse(Float32,getParaFromFile(file,"measure_Stop",avoidStr,delimiter)),
+
 
     # different measurements only use one at a time
 
@@ -142,6 +149,7 @@ function dataAnalysisParameters()
     avgPositionDimensionSum=parse(Bool,getParaFromFile(file,"avgPositionDimensionSum",avoidStr,delimiter)),
     # uses measure that takes the average position
     avgPosition=parse(Bool,getParaFromFile(file,"avgPosition",avoidStr,delimiter)),
+
     )
 end
 
@@ -205,7 +213,7 @@ Output:
 =#
 function avgPositionDimSum(vecOfPos)
     val=0  #temporary value
-    #for all entries in vecOfPos add up the sum of all elements in that matrix
+    # for all entries in vecOfPos add up the sum of all elements in that matrix
     for i in 1:size(vecOfPos)[1]
         val=val+sum(abs.(vecOfPos[i]))
     end
@@ -225,9 +233,9 @@ Output:
 1. inZone, array of Integers
 =#
 function indexInZone(minDist,maxDist,P,j)
-        #calculate distance to all fishes
+        # calculate distance to all fishes
         dist=sqrt.(sum((P.-transpose(P[j,:])).^2,dims=2))
-        #return index for those fishes whose distance is whitin the interval
+        # return index for those fishes whose distance is whitin the interval
         inZone=[i for (i,x) in enumerate(dist) if minDist<x<maxDist]
         return inZone
 end
@@ -245,15 +253,15 @@ Output:
 1. attDir, array of float, attraction direction
 =#
 function attractDir(P,j,inAttZone,attWeight,Sim_Para)
-    #initialization
+    # initialization
     attDir=zeros(Sim_Para[:dimension],1)
 
-    #greate vector towards the average position of fishes in attraction zone
+    # greate vector towards the average position of fishes in attraction zone
     a_v=sum(P[vec(inAttZone),:],dims=1)./size(inAttZone)[1]-transpose(P[j,:])
 
-    #check for 0
+    # check for 0
     if sum(a_v.^2)>0
-        #normalize and scale vector
+        # normalize and scale vector
         attDir=transpose(attWeight*normalize(a_v))
     end
 
@@ -274,13 +282,13 @@ Output:
 1. repDir, array of float, repulsion direction
 =#
 function repulsDir(P,j,inRepZone,repWeight,Sim_Para)
-    #initialization
+    # initialization
     repulsDir=zeros(Sim_Para[:dimension],1)
-    #create vector
+    # create vector
     r_v=transpose(P[j,:])-sum(P[vec(inRepZone),:],dims=1)
-    #check for 0
+    # check for 0
     if sum(r_v.^2)>0
-        #normalize, scale and transpose vector
+        # normalize, scale and transpose vector
         repulsDir=transpose(repWeight*normalize(r_v))
     end
 
@@ -303,17 +311,17 @@ Output:
 1. oriDir, array of float, orientation direction
 =#
 function orientDir(V,j,inOriZone,oriWeight,abs_v,Sim_Para)
-    #initialization
+    # initialization
     oriDir=zeros(Sim_Para[:dimension],1)
-    #add directions of fish in orientation zone
+    # add directions of fish in orientation zone
     V_temp=0*V
     for i in size(V)[1]
         V_temp[i,:]=normalize(V[1,:])
     end
     o_v=sum(V_temp[vec(inOriZone),:],dims=1)
-    #check length greater than 0
+    # check length greater than 0
     if sum(o_v.^2)>0
-        #normalize, scale and tranpose
+        # normalize, scale and tranpose
         oriDir=oriWeight*transpose(normalize(o_v))
     end
 
@@ -440,29 +448,29 @@ Output:
 1. V, multidimensional array of floats, representing velocities
 =#
 function velAdjustedForLimit(Fish_Para,Sim_Para,V)
-    #Gives a boolean vector for velocities in V whose norm is greater than
-    #the limit
+    # Gives a boolean vector for velocities in V whose norm is greater than
+    # the limit
     V_over=sqrt.(sum(V.^2,dims=2)) .> Fish_Para[:max_v]
 
-    #Initialization of matrix to store normalized velocity vectors whose
-    #magnitude needs to be reduced
+    # Initialization of matrix to store normalized velocity vectors whose
+    # magnitude needs to be reduced
     norm_V=zeros(sum(V_over),Sim_Para[:dimension])
-    #check if there are any velocities over the limit
+    # check if there are any velocities over the limit
     if sum(V_over)>0
-        #loop for each vector that is over the limit
+        # loop for each vector that is over the limit
         for k in 1:sum(V_over)
-            #Holds the vectors that are over the limit
+            # Holds the vectors that are over the limit
             Vk=V[vec(V_over),:]
-            #if there is more than one vector then only read one vector at
-            #a time
+            # if there is more than one vector then only read one vector at
+            # a time
             if size(Vk)[1]>1
                 Vk=Vk[k,:]
             end
-            #normalize vector and put it in norm_V
+            # normalize vector and put it in norm_V
             norm_V[k,:]=normalize(Vk)
 
         end
-        #Change the velocities that where over the limit to be max velocities
+        # Change the velocities that where over the limit to be max velocities
         V[vec(V_over),:]=Fish_Para[:mean_v]*norm_V
     end
 
@@ -481,19 +489,19 @@ Output:
        velocities
 =#
 function keepWithinBoundry(Env_Para,P,V)
-    #check if fishes are outside of boundry for any dimension
-    #returns logical matrix N_Fish x dimension
+    # check if fishes are outside of boundry for any dimension
+    # returns logical matrix N_Fish x dimension
     P_under= P .< -Env_Para[:L]/2
     P_over = P .> Env_Para[:L]/2
-    #change positions to be on boundry
+    # change positions to be on boundry
     P[vec(P_under)] .= -Env_Para[:L]/2
     P[vec(P_over)] .=Env_Para[:L]/2
-    #Gend indicies of those fish that crossed the boundry
+    # Get indicies of those fish that crossed the boundry
     ind=P_under+P_over
     ind=sum(ind,dims=2)
     ind=ind.>0
-    #make the fish that crossed boundry turn 180 degrees for all
-    #dimensions
+    # make the fish that crossed boundry turn 180 degrees for all
+    # dimensions
     V[vec(ind),:] =-V[vec(ind),:]
 
     return P,V
@@ -530,7 +538,7 @@ function animScatterFromVec(Env_Para,Data,Vizual_Para)
     #scatter plot
     scat= plt.scatter(Data[1][:,1], Data[1][:,2])
     #create function animation object
-    myanim = anim.FuncAnimation(fig, animUpdate, frames=100, interval=100)
+    myanim = anim.FuncAnimation(fig, animUpdate, frames=Vizual_Para[:N_frames], interval=100)
     #save animation where code is located
     myanim[:save]("test1.mp4", bitrate=-1, extra_args=["-vcodec", "libx264",
                   "-pix_fmt", "yuv420p"])
@@ -592,7 +600,7 @@ function updateDirSumAll(V,Fish_Para,P,j,Sim_Para,selfW,repWeight,oriWeight,
 
     end
 
-    return V
+    return V[j,:]
 
 end
 #=
@@ -606,9 +614,9 @@ Output:
 1. selfW, array of floats, self weight
 =#
 function selfWeightShiftSome(Sick_Para,selfW,Sim_Para)
-    #find random individuals
+    # find random individuals
     ind=randperm(Sim_Para[:N_Fish])[1:Sick_Para[:N_selfweightOff]]
-    #change weight of those individuals by multiplication
+    # change weight of those individuals by multiplication
     selfW[ind]=rand(Sick_Para[:N_selfweightOff],1)*Sick_Para[:selfOffAm].*selfW[ind]
     return selfW
 end
@@ -625,20 +633,19 @@ Output:
 none, saves a csv
 =#
 function generateCSVFromData(time_stamps,P,Vizual_Para,Sim_Para,Env_Para)
-    #initialize matrix that will hold all data, each row's first entry is a
-    #time stamp followed by positions [x,y,z] or [x,y] for each fish
+    # initialize matrix that will hold all data, each row's first entry is a
+    # time stamp followed by positions [x,y,z] or [x,y] for each fish
     M=zeros(Vizual_Para[:N_frames],1+Sim_Para[:dimension]*Sim_Para[:N_Fish])
-    #put time stamps in first column
+    # put time stamps in first column
     M[:,1]=time_stamps
-    #M[:,1]=ones(Vizual_Para[:N_frames],1)
-    #for number of frames
+    # for number of frames
     for i in 1:Vizual_Para[:N_frames]
-        #reshape position matrix s.t that the matrix is on the form specified
+        # reshape position matrix s.t that the matrix is on the form specified
         P_reshaped=reshape(transpose(P[i]),1,length(P[i]))
-        #add positions to M
+        # add positions to M
         M[i,2:(1+Sim_Para[:dimension]*Sim_Para[:N_Fish])]=P_reshaped
     end
-    #create csv that contains M
+    # create csv that contains M
     CSV.write("dataForVisualization.CSV",  DataFrame(M), writeheader=false)
 end
 
@@ -652,7 +659,7 @@ Output:
 none, saves to a csv
 =#
 function appendVectorToCsv(vec,DataAnalysis_Para)
-    #temporary vector
+    # temporary vector
     temp_vec=[]
     count=0
     for entry in transpose(vec)
@@ -667,17 +674,17 @@ function appendVectorToCsv(vec,DataAnalysis_Para)
         end
         count+=1
     end
-    #initialize vector
+    # initialize vector
     data=zeros(length(temp_vec)+1,1)
-    #set class as first entry
+    # set class as first entry
     data[1]=DataAnalysis_Para[:class]
-    #put vector in data
+    # put vector in data
     for i in 1:count
         data[i+1]=temp_vec[i]
     end
-    #transpose
+    # transpose
     data=transpose(data)
-    #append vector to CSV file
+    # append vector to CSV file
     CSV.write("dataforAnalysis.CSV", DataFrame(data), header = false, append = true)
 end
 #=
@@ -695,22 +702,27 @@ function avgPos(Pos)
 end
 
 #=
-Returns an array of indicies that we want samples when we want N_samples
-samples from a set with N_set entries
+Returns an array of indicies that we want sample when we want N_samples
+samples from a set with N_set entries between measure_Start*N_set and
+measure_Stop*N_set.
 Input:
 1. N_set, Integer
 2. N_samples, Integer
+3. measure_Start, Float
+4. measure_Stop, Float
 Output:
 1. ind, array of integers
 =#
-function getIndicesToSample(N_set,N_samples)
+function getIndicesToSample(N_set,N_samples,measure_Start,measure_Stop)
     #initialization
     ind=[]
     for i in 1:N_set
-        #next index we want to sample
-        next_ind=Int(ceil(i*(N_set/N_samples)))
-        #if that in index is in the set then append to array
-        if next_ind<=N_set
+        # interval
+        interval=measure_Stop-measure_Start
+        # next index we want to sample
+        next_ind=Int(ceil(measure_Start+i*((N_set*interval)/N_samples)))
+        # if that in index is in the set then append to array
+        if next_ind<=Int(ceil(measure_Stop*N_set))
             append!(ind,next_ind)
         end
     end
@@ -721,103 +733,110 @@ end
 
 #Main
 let
-    #enviorment Parameters
+    # enviorment Parameters
     Env_Para=environmentParameters()
 
-    #Simulation parameters
+    # Simulation parameters
     Sim_Para=simulationParameters()
 
-    #Fish parameters
+    # Fish parameters
     Fish_Para=fishParameters()
 
-    #parameters for sickness, defines how sickness affects fish
+    # parameters for sickness, defines how sickness affects fish
     Sick_Para=sickParameters()
 
-    #Parameters for ploting and animation
+    # Parameters for ploting and animation
     Vizual_Para=visualParamters()
 
-    #Parameters for data analysis
+    # Parameters for data analysis
     DataAnalysis_Para=dataAnalysisParameters()
 
 
-    #vector to store position data for visualisation
+    # vector to store position data for visualisation
     Posdata_anim=Vector(undef,Vizual_Para[:N_frames])
-    #vector to store time stamps
+    # vector to store time stamps
     time_stamps=Vector(undef,Vizual_Para[:N_frames])
-    #vector for ploting data gathered on each instance
+    # vector for ploting data gathered on each instance
     Plot_data=Vector(undef,Sim_Para[:N_instances])
 
-    #Run simulation with different instance of parameters
+    # Run simulation with different instance of parameters
     for _inst_ in 1:Sim_Para[:N_instances]
-        #marix of initial poisitions
+        # marix of initial poisitions
         P_init=initPosition(Env_Para,Sim_Para)
         P=P_init
-        #matrix of initial velocities
+        # matrix of initial velocities
         V_init=initVelocity(Fish_Para,Sim_Para)
         V=V_init
 
-        #vector of initial self weight
+        # vector of initial self weight
         selfW=initSelfWeight(Fish_Para,Sim_Para)
-        #vector of repulsion weights
+        # vector of repulsion weights
         repWeight=initRepWeight(Fish_Para,Sim_Para)
-        #vector of orientation weights
+        # vector of orientation weights
         oriWeight=initOriWeight(Fish_Para,Sim_Para)
-        #vector of attraction weights
+        # vector of attraction weights
         attWeight=initAttWeight(Fish_Para,Sim_Para)
-        #change self weight of some individuals if set true
+        # change self weight of some individuals if set true
         if Sick_Para[:selfWeightOffIndivually]
             selfW=selfWeightShiftSome(Sick_Para,selfW,Sim_Para)
         end
-        #variable to hold avgPos measure
+        # variable to hold avgPos measure
         avgPosData=zeros(1,Sim_Para[:dimension])
-        #variable to hold avgPositionDimSum measure
+        # variable to hold avgPositionDimSum measure
         avgPosDimSumData=0
 
         vecForDatanalysis=Vector(undef,DataAnalysis_Para[:N_measurements])
-        #Run simulation N_runs number of times to generate averages
+        # Run simulation N_runs number of times to generate averages
         for run_k in 1:Sim_Para[:N_runs]
-            #reinitialize positions
+            # reinitialize positions
             P=P_init
-            #reinitialize velocities
+            # reinitialize velocities
             V=V_init
 
-            #sample indicies for visualisation
-            vis_indicies=getIndicesToSample(Sim_Para[:N_steps],Vizual_Para[:N_frames])
-            #counter to know which index of vis_indicies that we are looking for
+            # sample indicies for visualisation
+            vis_indicies=getIndicesToSample(Sim_Para[:N_steps],Vizual_Para[:N_frames],0,1)
+            # counter to know which index of vis_indicies that we are looking for
             count_vis_ind=1
-            #sample indicies for datanalysis
-            ana_indicies=getIndicesToSample(Sim_Para[:N_steps],DataAnalysis_Para[:N_measurements])
-            #counter to know which index of ana_indicies that we are looking for
+            # sample indicies for datanalysis
+            ana_indicies=getIndicesToSample(Sim_Para[:N_steps],
+                DataAnalysis_Para[:N_measurements],
+                DataAnalysis_Para[:measure_Start],
+                DataAnalysis_Para[:measure_Stop])
+            # counter to know which index of ana_indicies that we are looking for
             count_ana_ind=1
 
 
-            #Run main code N_steps times
+            # Run main code N_steps times
             for i in 1:Sim_Para[:N_steps]
-                #add velocity noise
+                # add velocity noise
                 V=V+velocityNoise(Env_Para,Sim_Para)
-                #add position noise
+                # add position noise
                 P=P+positionNoise(Env_Para,Sim_Para)
-                #keep velocity under maximum
+                # keep velocity under maximum
                 V=velAdjustedForLimit(Fish_Para,Sim_Para,V)
 
-                #for each fish
-                for j in 1:Sim_Para[:N_Fish]
-                    #update direction
-                    V=updateDirSumAll(V,Fish_Para,P,j,Sim_Para,selfW,repWeight,oriWeight,attWeight)
+                # for each fish
+                # this loop is multi threaded, be carefull when implementing new
+                # functions or models, there is always the danger of a data race
+                # if you want to remove the multi threading simply remove
+                # "Threads.@threads"
+                Threads.@threads for j in 1:Sim_Para[:N_Fish]
+                    # update direction
+                    V[j,:]=updateDirSumAll(V,Fish_Para,P,j,Sim_Para,selfW,repWeight,oriWeight,attWeight)
 
                 end
 
-                #Keep fishes within boundry
+                # Keep fishes within boundry
                 P,V=keepWithinBoundry(Env_Para,P,V)
 
                 P=P+Sim_Para[:dt]*V #update position
 
 
-                #If we are the right iteration calculate and save
-                #visualization data
+                # If we are the right iteration calculate and save
+                # visualization data
                 if count_vis_ind<=Vizual_Para[:N_frames]
                     if Int(vis_indicies[count_vis_ind])==Int(i)
-                        #save for first run
+                        # save for first run
                         if run_k==1
                             time_stamps[count_vis_ind]=Sim_Para[:dt]*i
                             Posdata_anim[count_vis_ind]=P
@@ -827,18 +846,18 @@ let
                 end
 
 
-                #If we are the right iteration calculate and save measures
+                # If we are the right iteration calculate and save measures
                 if count_ana_ind<=DataAnalysis_Para[:N_measurements]
                     if Int(ana_indicies[count_ana_ind])==Int(i)
-                        #if we use measure avgPositionDimSum
+                        # if we use measure avgPositionDimSum
                         if DataAnalysis_Para[:avgPositionDimensionSum]
                             avgPosDimSumData=avgPosDimSumData+avgPositionDimSum(P)
                             vecForDatanalysis[count_ana_ind]=avgPosDimSumData
                         end
-                        #if we use measure avgPosition
+                        # if we use measure avgPosition
                         if DataAnalysis_Para[:avgPosition]
                             avgPosData=avgPosData+avgPos(P)
-                            #append measure to vec for analysis
+                            # append measure to vec for analysis
                             vecForDatanalysis[count_ana_ind]=avgPosData
                         end
                         count_ana_ind+=1
@@ -848,7 +867,7 @@ let
 
 
             end
-            #Saves time stamps and posdata_anim to a csv
+            # Saves time stamps and posdata_anim to a csv
             if (run_k==1) & (_inst_==1)
                 if Vizual_Para[:save_pos]
                     generateCSVFromData(time_stamps,Posdata_anim,Vizual_Para,Sim_Para,Env_Para)
@@ -856,7 +875,7 @@ let
             end
 
         end
-        #Appends vecForDatanalysis to csv
+        # Appends vecForDatanalysis to csv
         if DataAnalysis_Para[:appendToDataForAnalysis]
             appendVectorToCsv(vecForDatanalysis,DataAnalysis_Para)
         end
@@ -866,7 +885,7 @@ let
 
 
     if Vizual_Para[:scatter_anim]
-        #Creates an animation and saves it
+        # Creates an animation and saves it
         animScatterFromVec(Env_Para,Posdata_anim,Vizual_Para)
     end
 
