@@ -1,40 +1,108 @@
+# -----------------------------------------------------------------------------------------------------------------
+# Script using blenderPy's functions to import 3D objects into Blender
+# and give them XYZ coordinates from a .CSV file.
+# Tested in blender
+#
+# Video How-To : https://2020.igem.org/wiki/images/6/6f/T--UiOslo_Norway--DemonstrationVideoTEXTandLogo.mp4
+# Repository   : https://github.com/uio-igem/iGEM2020_UiOslo_Norway
+# Written during iGEM 2020 and improved upon in iGEM 2021
+#
+# (C) 2020 Joanas Grønbakken, Martin Eide Lien, Norway. Sal.Coli 
+# (C) 2021 Martin Eide Lien, Trondheim, Norway. SulFind
+# Released under GNU Public License (GPL)
+# <NTNU igem github link her >
+# email meidelien@gmail.com
+# -----------------------------------------------------------------------------------------------------------------
+
+
+
 import csv
 import bpy
 
 
+### OS independent blenderScript Parameters ###
+"""
+By default, blenderScript.py imports 10 objects from "dataForVisualization.CSV" to make it easier to run on low-powered computers.
+iGEMSchoolingModel.jl by default outputs data for 100 objects. By changing the integer value of
+
+N_obj = 10 
+
+to
+
+N_obj = 100 
+
+you can import all default created objects.
+
+"""
 N_obj = 10 # Number of objects
+
 dim = 3 # Number of dimensions that the objects hould move in
+
 scale = 10 # Divides positions by scale such that fish are closer togheter
 
-# Set true if you want to import an .obj file that is suppose to be copied
-importObject = False
-# Set true if you want to copy a object that is selected with cursour
-CopySelected = True
+importObject = True # Set true if you want to import an .obj file that is suppose to be copied
 
-# File path for import, the name of the imported object has to contain name_space
-obj_loc = '/home/jonas/Desktop/Salmon_texture.obj'
+CopySelected = True  # Set true if you want to copy a object that is selected with the cursor, see
 
-# File path to csv that contains the locations of each object at each time frame.
-# Each line contains a frame, first entry is a time stamp or some other information.
-# then the next tree entries in that line are [x,y,z] positions 
-csv_loc='/home/jonas/Desktop/dataForVisualization.CSV'  
-# csv_loc = r'C:\Users\meide\Documents\GitHub\iGEM2020_UiOslo_Norway\dataforVisualization.CSV' # Windows
+
+""" 
+Model and CSV import information
+File path for import, the name of the imported object has to contain name_space
+By default, it is <name_space="salmon"> but can changed in a line below.
+
+The objects that are important or copied will only be found if their name 
+matches the string inside name space. this is not case sensitive
+
+File path to the . that contains the locations of each object at each time frame.
+Each line contains a frame, first entry is a time stamp or some other information.
+then the next tree entries in that line are [x,y,z] positions 
+
+"""
+
+########    LINUX           #######
+# Comment out lines csv_loc & obj_loc below if you are using this script on a Windows computer
+
+### CSV location ####
+# csv_loc= '/home/USERNAME/iGEM2020_UiOslo_Norway/Example data for visualization and analysis/dataForVisualization.CSV'  # Linux .CSV location format
+
+### OBJ location ###
+# obj_loc = '/home/USERNAME/iGEM2020_UiOslo_Norway/SALMON.obj' # Linux .OBJ location format
+
+
+########    LINUX END        #######
+
+"""
+########################################################################################
+
+"""
+
+########      WINDOWS        #######
+# Comment out lines csv_loc & obj_loc below if you are using this script on a Linux computer
+
+### CSV location ####
+csv_loc = 'C:/Users/meide/Documents/GitHub/iGEM2020_UiOslo_Norway/Example data for visualization and analysis/dataForVisualization.CSV' # Windows .CSV location format
+
+### OBJ location ###
+obj_loc = 'C:/Users/meide/Documents/GitHub/iGEM2020_UiOslo_Norway/SALMON.obj' # Windows .OBJ location format 
+
+
+########    WINDOWS END       #######
 
 # The objects that are important or copied will only be found if their name 
-# contains this name space, this is not case sensetive
+# contains this name space, this is not case sensitive
 name_space="salmon"
 
 
 # Imports object 
 if importObject:
-    # Import N_obj objects and put them in scene
+    # Import a configurable number of objects objects and put them in scene
     for i in range(N_obj):
         new_obj = bpy.ops.import_scene.obj(filepath=obj_loc)
         
         
         
 if CopySelected:
-    # The scene that our object will be placed in
+    # The scene that imported objects will be placed in
     scn = bpy.context.scene.collection
     
     # Object that we are going to copy, this is selected on the gui by the user
