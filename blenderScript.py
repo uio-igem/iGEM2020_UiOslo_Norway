@@ -60,7 +60,7 @@ then the next tree entries in that line are [x,y,z] positions
 """
 
 ########    LINUX           #######
-# Comment out lines csv_loc & obj_loc below if you are using this script on a Windows computer
+# Comment out lines csv_loc & obj_loc below if you are using this script in a Windows environment
 
 ### CSV location ####
 # csv_loc= '/home/USERNAME/iGEM2020_UiOslo_Norway/Example data for visualization and analysis/dataForVisualization.CSV'  # Linux .CSV location format
@@ -77,7 +77,7 @@ then the next tree entries in that line are [x,y,z] positions
 """
 
 ########      WINDOWS        #######
-# Comment out lines csv_loc & obj_loc below if you are using this script on a Linux computer
+# Comment out lines csv_loc & obj_loc below if you are using this script in a Linux environment
 
 ### CSV location ####
 csv_loc = 'C:/Users/meide/Documents/GitHub/iGEM2020_UiOslo_Norway/Example data for visualization and analysis/dataForVisualization.CSV' # Windows .CSV location format
