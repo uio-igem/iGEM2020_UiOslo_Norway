@@ -59,7 +59,7 @@ then the next tree entries in that line are [x,y,z] positions
 
 """
 
-########    LINUX           #######
+########    LINUX  START         #######
 # Comment out lines csv_loc & obj_loc below if you are using this script in a Windows environment
 
 ### CSV location ####
@@ -76,7 +76,7 @@ then the next tree entries in that line are [x,y,z] positions
 
 """
 
-########      WINDOWS        #######
+########      WINDOWS  START     #######
 # Comment out lines csv_loc & obj_loc below if you are using this script in a Linux environment
 
 ### CSV location ####
